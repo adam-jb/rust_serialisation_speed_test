@@ -86,24 +86,23 @@ fn main() {
     println!("Vector Deserialisation took {:?}", now.elapsed());
 
     
-    /*
+
     // 3rd test: graph serialisation
     // make random graph
     let now = Instant::now();
     let mut graph = Graph {
-        edges_per_node: std::iter::repeat_with(SmallVec::new)
-            .take(1_000_000)
-            .collect(),
+        edges_per_node: HashMap::new(),
     };
-     for from in 1..1_000_000 {
+    for from in 1..1_000_000 {
         let mut edges = SmallVec::new();
         for n in 1..3 {
             edges.push(Edge {
-                    to: NodeID(*nums.choose(&mut rng).unwrap() as u32),
-                    cost: Cost(*nums.choose(&mut rng).unwrap() as u16),
-                });
+                to: NodeID(*nums.choose(&mut rng).unwrap() as u32),
+                cost: Cost(*nums.choose(&mut rng).unwrap() as u16),
+            });
         }
-        graph.edges_per_node[from] = edges;
+        let from: usize = from;
+        graph.edges_per_node.insert(from, edges);
     }
     println!("Graph population took {:?}", now.elapsed());
 
@@ -114,7 +113,7 @@ fn main() {
     let now = Instant::now();
     let deserialised_graph: Graph = bincode::deserialize(&serialized_graph).unwrap();
     println!("Graph Deserialisation took {:?}", now.elapsed());
-    */
+    
 
 }
 
@@ -139,7 +138,6 @@ fn convert_input() {
         }
 
         let from: usize = from.parse().unwrap();
-        //graph.edges_per_node[&from] = edges;
         graph.edges_per_node.insert(from, edges);
     }
 
@@ -161,7 +159,7 @@ fn test_mini_graph() {
     for _ in 1..1000 {
         let results = floodfill(&graph, start_node);
     }
-    
+
     println!("Mini network Djikstra benchmark: {:?}", now.elapsed());
     let results = floodfill(&graph, start_node);
     println!("Reached {} nodes", results.len());

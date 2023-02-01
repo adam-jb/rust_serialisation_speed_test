@@ -85,9 +85,34 @@ fn main() {
     let deserialised_numbers: Vec<Vec<i32>> = bincode::deserialize(&serialized_numbers).unwrap();
     println!("Vector Deserialisation took {:?}", now.elapsed());
 
+
+
+    /// hashmap serialisation/deserialisation
+    let mut test_hashmap = HashMap::new();
+    for from in 1..10_000_000 {
+        let mut edges = SmallVec::<[Edge; 4]>::new();
+        for n in 1..3 {
+            edges.push(Edge {
+                to: NodeID(*nums.choose(&mut rng).unwrap() as u32),
+                cost: Cost(*nums.choose(&mut rng).unwrap() as u16),
+            });
+        }
+        let from: usize = from;
+        test_hashmap.insert(from, edges);
+    }
+    let now = Instant::now();
+    let serialized_hashmap = bincode::serialize(&test_hashmap).unwrap();
+    println!("Hashmap Serialisation took {:?}", now.elapsed());
+
+    let now = Instant::now();
+    let deserialised_hashmap: HashMap<usize, SmallVec::<[Edge; 4]>>= bincode::deserialize(&serialized_hashmap).unwrap();
+    println!("Hashmap Deserialisation took {:?}", now.elapsed());
     
 
-    // 3rd test: graph serialisation
+
+    
+
+    //  test: graph serialisation. Wrapping hashmap in a graph doesn't impact speed
     // make random graph
     let now = Instant::now();
     let mut graph = Graph {

@@ -4,12 +4,14 @@ Script to compare rust processes between CE and local machines. Results from 1/2
 
 ```
 Local:
-Loop took 374.942667ms
-Vector Serialisation took 437.238125ms
-Vector Deserialisation took 299.177417ms
-Graph population took 2.550919625s
-Graph Serialisation took 588.363ms
-Graph Deserialisation took 470.972417ms
+Mini network Djikstra benchmark: 2.106074333s
+Reached 944 nodes
+Loop took 385.115041ms
+Vector Serialisation took 447.552833ms
+Vector Deserialisation took 306.16875ms
+Graph population took 3.21979975s
+Graph Serialisation took 750.802583ms
+Graph Deserialisation took 1.211326334s
 
 
 CE:

@@ -93,7 +93,7 @@ fn main() {
     let mut graph = Graph {
         edges_per_node: HashMap::new(),
     };
-    for from in 1..1_000_000 {
+    for from in 1..10_000_000 {
         let mut edges = SmallVec::new();
         for n in 1..3 {
             edges.push(Edge {
@@ -162,7 +162,7 @@ fn test_mini_graph() {
 
     println!("Mini network Djikstra benchmark: {:?}", now.elapsed());
     let results = floodfill(&graph, start_node);
-    println!("Reached {} nodes", results.len());
+    println!("Reached {} nodes x1000 times", results.len());
 }
 
 
@@ -243,24 +243,5 @@ fn floodfill(graph: &Graph, start: NodeID) -> HashMap<NodeID, Cost> {
 
 
 
-
-/*
-Local:
-Loop took 374.942667ms
-Vector Serialisation took 437.238125ms
-Vector Deserialisation took 299.177417ms
-Graph population took 2.550919625s
-Graph Serialisation took 588.363ms
-Graph Deserialisation took 470.972417ms
-
-
-CE:
-Loop took 235.249075ms
-Vector Serialisation took 572.806317ms
-Vector Deserialisation took 355.906657ms
-Graph population took 2.178187848s
-Graph Serialisation took 797.817181ms
-Graph Deserialisation took 679.524387ms
-*/
 
 

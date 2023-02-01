@@ -3,26 +3,60 @@ use rand::{thread_rng, seq::SliceRandom};
 use smallvec::SmallVec;
 use serde::{Deserialize, Serialize};
 
+use std::collections::{BinaryHeap, HashMap};
+use std::fs::File;
+use std::io::{BufReader, BufWriter};
+use nanorand::{Rng, WyRand};
+use std::fmt;
+
+use self::priority_queue::PriorityQueueItem;
+
+mod priority_queue;
+
 
 #[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Hash, Clone, Copy, Debug)]
 struct NodeID(u32);
 
+// implement display options for printing during debug
+impl fmt::Display for NodeID {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
 #[derive(Serialize, Deserialize, PartialEq, Eq, PartialOrd, Ord, Clone, Copy, Debug)]
 struct Cost(u16);
 
-#[derive(Serialize, Deserialize)]
-struct EdgeOriginal {
+impl fmt::Display for Cost {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Serialize, Deserialize, Clone, Copy)]
+struct Edge {
     to: NodeID,
     cost: Cost,
 }
 
-#[derive(Serialize, Deserialize)]
+
+#[derive(Serialize, Deserialize, Clone)]
 struct Graph {
-    edges_per_node: Vec<SmallVec<[EdgeOriginal; 4]>>,
+    edges_per_node: HashMap<usize, SmallVec<[Edge; 4]>>,
 }
 
 
+fn print_type_of<T>(_: &T) {
+    println!("{}", std::any::type_name::<T>())
+}
+
 fn main() {
+
+    //convert_input();
+    //create_mini_graph();
+
+    test_mini_graph();
+
 
     /// 1st test: big loop
     let now = Instant::now();
@@ -52,6 +86,7 @@ fn main() {
     println!("Vector Deserialisation took {:?}", now.elapsed());
 
     
+    /*
     // 3rd test: graph serialisation
     // make random graph
     let now = Instant::now();
@@ -63,7 +98,7 @@ fn main() {
      for from in 1..1_000_000 {
         let mut edges = SmallVec::new();
         for n in 1..3 {
-            edges.push(EdgeOriginal {
+            edges.push(Edge {
                     to: NodeID(*nums.choose(&mut rng).unwrap() as u32),
                     cost: Cost(*nums.choose(&mut rng).unwrap() as u16),
                 });
@@ -79,12 +114,137 @@ fn main() {
     let now = Instant::now();
     let deserialised_graph: Graph = bincode::deserialize(&serialized_graph).unwrap();
     println!("Graph Deserialisation took {:?}", now.elapsed());
-
-    
-
-
+    */
 
 }
+
+
+fn convert_input() {
+    println!("Read file");
+    let contents = std::fs::read_to_string("walk.txt").unwrap();
+    println!("Parse");
+    let input: HashMap<String, Vec<[usize; 5]>> = serde_json::from_str(&contents).unwrap();
+
+    println!("Converting into graph");
+    let mut graph = Graph {
+        edges_per_node: HashMap::new(),
+    };
+    for (from, input_edges) in input {
+        let mut edges = SmallVec::new();
+        for array in input_edges {
+            edges.push(Edge {
+                to: NodeID(array[1] as u32),
+                cost: Cost(array[0] as u16),
+            });
+        }
+
+        let from: usize = from.parse().unwrap();
+        //graph.edges_per_node[&from] = edges;
+        graph.edges_per_node.insert(from, edges);
+    }
+
+    println!("Saving the graph");
+    let file = BufWriter::new(File::create("graph.bin").unwrap());
+    bincode::serialize_into(file, &graph).unwrap();
+}
+
+
+fn test_mini_graph() {
+
+    let file = BufReader::new(File::open("sample_graph.bin").unwrap());
+    let graph: Graph = bincode::deserialize_from(file).unwrap();
+
+    let file = BufReader::new(File::open("start_node.bin").unwrap());
+    let start_node: NodeID = bincode::deserialize_from(file).unwrap();
+
+    let now = Instant::now();
+    for _ in 1..1000 {
+        let results = floodfill(&graph, start_node);
+    }
+    
+    println!("Mini network Djikstra benchmark: {:?}", now.elapsed());
+    let results = floodfill(&graph, start_node);
+    println!("Reached {} nodes", results.len());
+}
+
+
+
+fn create_mini_graph() {
+    println!("Loading graph");
+    let now = Instant::now();
+    let file = BufReader::new(File::open("graph.bin").unwrap());
+    let graph: Graph = bincode::deserialize_from(file).unwrap();
+    println!("Loading full graph took {:?}", now.elapsed());
+
+    // Run djikstra once
+    let mut rng = WyRand::new();
+    let now = Instant::now();
+    let start = NodeID(rng.generate_range(0..graph.edges_per_node.len() as u32));
+    let results = floodfill(&graph, start);
+
+
+    let mut sample_graph = Graph {
+        edges_per_node: HashMap::new(),
+    };
+
+    for (key, value) in results.into_iter() {
+
+        let input_edges = &graph.edges_per_node[&(key.0 as usize)];
+        let mut edges = SmallVec::new();
+
+        for edge in input_edges {
+            edges.push(*edge);
+        }
+        
+        sample_graph.edges_per_node.insert(key.0 as usize, edges);
+
+    }
+
+    // Serialise and save smaller graph
+    let file = BufWriter::new(File::create("sample_graph.bin").unwrap());
+    bincode::serialize_into(file, &sample_graph).unwrap();
+    println!("Saved mini network of len {}", sample_graph.edges_per_node.len());
+
+    let file = BufWriter::new(File::create("start_node.bin").unwrap());
+    bincode::serialize_into(file, &start).unwrap();
+
+}
+
+fn floodfill(graph: &Graph, start: NodeID) -> HashMap<NodeID, Cost> {
+
+    let time_limit = Cost(3600);
+
+    let mut queue: BinaryHeap<PriorityQueueItem<Cost, NodeID>> = BinaryHeap::new();
+    queue.push(PriorityQueueItem {
+        cost: Cost(0),
+        value: start,
+    });
+
+    let mut cost_per_node = HashMap::new();
+
+    while let Some(current) = queue.pop() {
+        if cost_per_node.contains_key(&current.value) {
+            continue;
+        }
+        if current.cost > time_limit {
+            continue;
+        }
+        cost_per_node.insert(current.value, current.cost);
+
+        /// got some casting here: could any of it be hurting performance?
+        for edge in &graph.edges_per_node[&(current.value.0 as usize)] {
+            queue.push(PriorityQueueItem {
+                cost: Cost(current.cost.0 + edge.cost.0),
+                value: edge.to,
+            });
+        }
+    }
+
+    cost_per_node
+}
+
+
+
 
 /*
 Local:

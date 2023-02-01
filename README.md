@@ -15,10 +15,12 @@ Graph Deserialisation took 1.211326334s
 
 
 CE:
-Loop took 235.249075ms
-Vector Serialisation took 572.806317ms
-Vector Deserialisation took 355.906657ms
-Graph population took 2.178187848s
-Graph Serialisation took 797.817181ms
-Graph Deserialisation took 679.524387ms
+Mini network Djikstra benchmark: 2.508606719s
+Reached 944 nodes
+Loop took 175.922609ms
+Vector Serialisation took 590.537725ms
+Vector Deserialisation took 355.399577ms
+Graph population took 3.033528389s
+Graph Serialisation took 944.261254ms
+Graph Deserialisation took 1.702373441s
 ```

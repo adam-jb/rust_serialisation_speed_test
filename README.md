@@ -4,23 +4,23 @@ Script to compare rust processes between CE and local machines. Results from 1/2
 
 ```
 Local:
-Mini network Djikstra benchmark: 2.106074333s
-Reached 944 nodes
-Loop took 385.115041ms
-Vector Serialisation took 447.552833ms
-Vector Deserialisation took 306.16875ms
-Graph population took 3.21979975s
-Graph Serialisation took 750.802583ms
-Graph Deserialisation took 1.211326334s
+Mini network Djikstra benchmark: 191.40475ms
+Reached 944 nodes x1000 times
+Loop took 42ns
+Vector Serialisation took 4.464417ms
+Vector Deserialisation took 20.223583ms
+Graph population took 2.035119541s
+Graph Serialisation took 199.417417ms
+Graph Deserialisation took 1.533202667s
 
 
 CE:
-Mini network Djikstra benchmark: 2.508606719s
-Reached 944 nodes
-Loop took 175.922609ms
-Vector Serialisation took 590.537725ms
-Vector Deserialisation took 355.399577ms
-Graph population took 3.033528389s
-Graph Serialisation took 944.261254ms
-Graph Deserialisation took 1.702373441s
+Mini network Djikstra benchmark: 197.890435ms
+Reached 944 nodes x1000 times
+Loop took 63ns
+Vector Serialisation took 12.032993ms
+Vector Deserialisation took 36.731377ms
+Graph population took 2.995024599s
+Graph Serialisation took 364.759121ms
+Graph Deserialisation took 2.839592218s
 ```
